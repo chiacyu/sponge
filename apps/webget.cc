@@ -12,10 +12,18 @@ void get_URL(const string &host, const string &path) {
     // You will need to connect to the "http" service on
     // the computer whose name is in the "host" string,
     // then request the URL path given in the "path" string.
-
+    TCPSocket tcp_socket;
+    tcp_socket.connect(Address(host, "http"));
+    auto msg = "GET " + path + " HTTP/1.1\r\n" + "Host: " + host + "\r\n" + "Connection: close\r\n\r\n";
+    tcp_socket.write(msg);
     // Then you'll need to print out everything the server sends back,
     // (not just one call to read() -- everything) until you reach
     // the "eof" (end of file).
+    while( !tcp_socket.eof() ){
+        auto recvd = tcp_socket.read();
+        cout << recvd;
+    }
+    tcp_socket.shutdown(SHUT_RDWR);
 
     cerr << "Function called: get_URL(" << host << ", " << path << ").\n";
     cerr << "Warning: get_URL() has not been implemented yet.\n";
