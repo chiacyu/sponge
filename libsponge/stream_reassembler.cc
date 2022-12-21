@@ -33,19 +33,11 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         return;
     }
 
-    //save unassemble string into buffer
-    for( char c : data){
-        size_t start_index = index;
-        _buffer_bitmap[start_index] = c;
-        _current_buf_sizes+=1;
-        if(( _current_buf_sizes >= _capacity) ||
-           ( start_index == _capacity)) break;
-    }
-
     //flush reveived data into bytestreams
     if( _next_reassemble_char_index >= index ){
         string flush_data = "";
         size_t start_index = _next_reassemble_char_index - index;
+        
         while( start_index < data.size() ){
             flush_data += data[start_index];
             _buffer_bitmap[_next_reassemble_char_index] = true;
@@ -58,11 +50,23 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         }
         _output.write(flush_data);
     }
+    else{
+        //save unassemble string into buffer
+        for( char c : data){
+        size_t start_index = index;
+        if(_buffer_bitmap[start_index]!=0){
+            continue;
+        }
+        _buffer_bitmap[start_index] = c;
+        _current_buf_sizes+=1;
+        if(( _current_buf_sizes >= _capacity) ||
+           ( start_index == _capacity)) break;
+        }
+    }
 
+    string flush_data = "";
     //flush ready data into bytestreams
     while( _unassemble_buffer_[_next_reassemble_char_index] != 0){
-
-        string flush_data = "";
         flush_data += _unassemble_buffer_[_next_reassemble_char_index];
         _buffer_bitmap[_next_reassemble_char_index] = true;
         _next_reassemble_char_index++;
@@ -71,6 +75,7 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
             break;
         }
     }
+    _output.write(flush_data);
 
     if(empty() && _eof_flag)    _output.end_input();
     return;
