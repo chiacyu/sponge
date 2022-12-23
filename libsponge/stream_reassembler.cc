@@ -40,11 +40,12 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         
         while( start_index < data.size() ){
             flush_data += data[start_index];
-            _buffer_bitmap[_next_reassemble_char_index] = true;
-            _unassemble_buffer_[_next_reassemble_char_index] = data[start_index];
-            //_current_buf_sizes--;
-            start_index++;
-            if((_next_reassemble_char_index >= _capacity) || _current_buf_sizes >= _capacity){
+	    if(_buffer_bitmap[start_index + index] == true){
+	    	_current_buf_sizes--;
+	    }
+             start_index++;
+	    _next_reassemble_char_index++;
+            if((_next_reassemble_char_index >= _capacity)){
                 break;
             }
         }
@@ -54,21 +55,24 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         //save unassemble string into buffer
         for( char c : data){
         size_t start_index = index;
-        if(_buffer_bitmap[start_index]!=0){
+        if(_buffer_bitmap[start_index] == true){
             continue;
         }
-        _buffer_bitmap[start_index] = c;
+        _unassemble_buffer_[start_index] = c;
+	_buffer_bitmap[start_index] = true;
         _current_buf_sizes+=1;
-        if(( _current_buf_sizes >= _capacity) ||
-           ( start_index == _capacity)) break;
-        }
+	start_index+=1;
+        if(( _current_buf_sizes >= (_capacity - _next_reassemble_char_index)) ||
+		(start_index >= _capacity)){
+		break;
+        	}
+	}
     }
 
     string flush_data = "";
     //flush ready data into bytestreams
-    while( _unassemble_buffer_[_next_reassemble_char_index] != 0){
+    while( _buffer_bitmap[_next_reassemble_char_index] == true){
         flush_data += _unassemble_buffer_[_next_reassemble_char_index];
-        _buffer_bitmap[_next_reassemble_char_index] = true;
         _next_reassemble_char_index++;
         _current_buf_sizes--;
         if( _next_reassemble_char_index == _capacity){
@@ -77,7 +81,9 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
     }
     _output.write(flush_data);
 
-    if(empty() && _eof_flag)    _output.end_input();
+    if(empty() && _eof_flag){
+	_output.end_input();
+    }
     return;
 }
 
