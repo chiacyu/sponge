@@ -3,17 +3,18 @@
 
 #include "byte_stream.hh"
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <map>
 
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
 //! possibly overlapping) into an in-order byte stream.
 class StreamReassembler {
   private:
     // Your code here -- add private members as necessary.
-    std::vector<bool> _buffer_bitmap;
-    std::vector<char> _unassemble_buffer_;
+    std::map<size_t, char>_buffer_char_bitmap;
     size_t _next_reassemble_char_index;
     size_t _current_buf_sizes;
     bool _eof_flag;
