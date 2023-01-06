@@ -30,10 +30,8 @@ WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
 uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
 
     int32_t diff = checkpoint + isn.raw_value();
-
     int32_t offset_r = n.raw_value() - diff;
     int64_t sn = checkpoint + offset_r;
-
     if ( sn < 0 ){
         sn += (1UL << 32);
     } 
