@@ -6,8 +6,10 @@
 #include "tcp_segment.hh"
 #include "wrapping_integers.hh"
 
+#include <cstddef>
 #include <functional>
 #include <queue>
+#include <map>
 
 //! \brief The "sender" part of a TCP implementation.
 
@@ -31,6 +33,22 @@ class TCPSender {
 
     //! the (absolute) sequence number for the next byte to be sent
     uint64_t _next_seqno{0};
+
+    std::map<size_t, TCPSegment> _outstanding_segments;
+
+    size_t _receiver_window_size;
+
+    size_t _consecutive_retransmissions_counts;
+
+    size_t _bytes_in_flight_counts;
+
+    unsigned int _elapsed_time;
+
+    unsigned int _timeout_counts;
+
+    bool _isn_flag;
+
+    bool _fin_flag:
 
   public:
     //! Initialize a TCPSender
