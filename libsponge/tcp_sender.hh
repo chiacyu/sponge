@@ -34,7 +34,9 @@ class TCPSender {
     //! the (absolute) sequence number for the next byte to be sent
     uint64_t _next_seqno{0};
 
-    std::map<size_t, TCPSegment> _outstanding_segments;
+    //std::map<size_t, TCPSegment> _outstanding_segments;
+
+    std::queue<TCPSegment> _outstanding_segments{};
 
     size_t _receiver_window_size;
 
@@ -48,7 +50,9 @@ class TCPSender {
 
     bool _isn_flag;
 
-    bool _fin_flag:
+    bool _fin_flag;
+
+    bool _timer_liveness;
 
   public:
     //! Initialize a TCPSender
