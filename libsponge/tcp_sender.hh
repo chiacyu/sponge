@@ -46,7 +46,7 @@ class TCPSender {
 
     unsigned int _elapsed_time;
 
-    unsigned int _timeout_counts;
+    int _timeout_counts;
 
     bool _isn_flag;
 
