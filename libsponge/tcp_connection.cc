@@ -29,16 +29,62 @@ size_t TCPConnection::time_since_last_segment_received() const {
 }
 
 void TCPConnection::segment_received(const TCPSegment &seg) { 
-    DUMMY_CODE(seg); 
+
+    if(!_active){
+        return;
+    }
+    
+    const TCPSegment segments = seg;
+
+    // if reset flag is set
+    if( segments.header().rst){
+        _sender.stream_in().set_error();
+        _receiver.stream_out().set_error();
+        _active = false;
+    }
+
+    // if ack flag is set
+    if( segments.header().ack){
+        _sender.ack_received(segments.header().ackno, segments.header().win);
+    }
+    
+    _receiver.segment_received(segments);
+
+
+}
+
+void TCPConnection::send_segments(){
+    // while the sender
+    while ( !_sender.segments_out().empty() )
+    {
+        TCPSegment segment = _sender.segments_out().front();
+        _sender.segments_out().pop();
+
+        // optional<WrappingInt32> ack_no = _receiver.ackno();
+
+        // if(ack_no.has_value()){
+        //     segment.header().ack = true;
+        //     segment.header().ackno = ack_no;
+        // }
+
+        segment.header().win = _receiver.window_size() <= numeric_limits<uint16_t>::max() 
+                                                    ?   _receiver.window_size()
+                                                    :   numeric_limits<uint16_t>::max();
+        _segments_out.emplace(segment);
+    }
+    return;
 }
 
 bool TCPConnection::active() const { 
-    return _aliveness; 
+    return _active; 
 }
 
 size_t TCPConnection::write(const string &data) {
-    DUMMY_CODE(data);
-    return {};
+    if(!data.size() || !_active) return 0;
+
+    size_t wc = _sender.stream_in().write(data);
+    _sender.fill_window();
+    return wc;
 }
 
 //! \param[in] ms_since_last_tick number of milliseconds since the last call to this method
