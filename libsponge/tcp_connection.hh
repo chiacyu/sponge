@@ -24,6 +24,7 @@ class TCPConnection {
     bool _active{false};
     size_t _time_since_last_segment_received{0};
     void send_segments();
+    void send_rst_segments();
 
   public:
     //! \name "Input" interface for the writer
